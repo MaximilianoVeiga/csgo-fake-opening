@@ -1,5 +1,4 @@
 #include "utils.hpp"
-
 #include <Windows.h>
 #include <vector>
 

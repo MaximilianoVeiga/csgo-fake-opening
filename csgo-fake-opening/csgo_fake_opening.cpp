@@ -30,6 +30,7 @@
 
 #include <thread>
 #include <chrono>
+#include <cstdio>
 
 void csgo_fake_opening::init()
 {

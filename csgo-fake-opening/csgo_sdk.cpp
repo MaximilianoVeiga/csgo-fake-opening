@@ -25,7 +25,6 @@
 #include "csgo_sdk.hpp"
 #include "sdk.hpp"
 #include "utils.hpp"
-
 #include <string>
 
 // csgo_sdk
@@ -352,20 +351,15 @@ bool c_econ_item_view::tool_can_apply_to(c_econ_item_view *item)
 	static auto fn_tool_can_apply_to = utils::pattren_scan("client.dll", "55 8B EC 83 EC 18 53 56 8B F1 57 8B FA");
 	bool ret_val;
 
-	__asm
-		{
-		mov eax, this
-		add eax, 0xC
-		mov ecx, eax
-		mov eax, item
-		add eax, 0xC
-		mov edx, eax
-		push 0x4
-		call fn_tool_can_apply_to
-		mov ret_val, al
-		add esp, 4
-		}
-	;
+	void* thisPtr = static_cast<void*>(this);
+	void* itemPtr = static_cast<void*>(item);
+	void* ecxPtr = static_cast<void*>(reinterpret_cast<uint8_t*>(this) + 0xC);
+	void* edxPtr = static_cast<void*>(reinterpret_cast<uint8_t*>(item) + 0xC);
+
+	typedef bool(__cdecl* ToolCanApplyToFn)(void*, void*);
+	ToolCanApplyToFn toolCanApplyTo = reinterpret_cast<ToolCanApplyToFn>(fn_tool_can_apply_to);
+
+	ret_val = toolCanApplyTo(edxPtr, ecxPtr);
 
 	return ret_val;
 }

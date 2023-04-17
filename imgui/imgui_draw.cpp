@@ -126,7 +126,7 @@ namespace IMGUI_STB_NAMESPACE
 #define STB_RECT_PACK_IMPLEMENTATION
 #endif
 #ifdef IMGUI_STB_RECT_PACK_FILENAME
-#include IMGUI_STB_RECT_PACK_FILENAME
+// #include IMGUI_STB_RECT_PACK_FILENAME
 #else
 #include "imstb_rectpack.h"
 #endif
@@ -153,7 +153,7 @@ namespace IMGUI_STB_NAMESPACE
 #define STBTT_DEF extern
 #endif
 #ifdef IMGUI_STB_TRUETYPE_FILENAME
-#include IMGUI_STB_TRUETYPE_FILENAME
+// #include IMGUI_STB_TRUETYPE_FILENAME
 #else
 #include "imstb_truetype.h"
 #endif
@@ -765,7 +765,7 @@ void ImDrawList::AddPolyline(const ImVec2 *points, const int points_count, ImU32
 
         // Temporary buffer
         // The first <points_count> items are normals at each line point, then after that there are either 2 or 4 temp points for each line point
-        ImVec2 *temp_normals = (ImVec2 *)alloca(points_count * ((use_texture || !thick_line) ? 3 : 5) * sizeof(ImVec2)); //-V630
+        ImVec2 *temp_normals = (ImVec2 *)alloca(static_cast<unsigned long long>(points_count) * ((use_texture || !thick_line) ? 3 : 5) * sizeof(ImVec2)); //-V630
         ImVec2 *temp_points = temp_normals + points_count;
 
         // Calculate normals (tangents) for each line segment
