@@ -8,17 +8,15 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-        dotnet-version: ["3.1.x", "6.0.x"]
-
-    runs-on:
-      windows-latest # For a list of available runner types, refer to
-      # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: windows-latest
 
     env:
       Solution_Name: csgo-fake-opening.sln
+
+    strategy:
+      matrix:
+        dotnet-version: ["3.1.x", "6.0.x"]
+        configuration: [Debug, Release]
 
     steps:
       - name: Checkout
@@ -26,37 +24,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Install the .NET Core workload
       - name: Install .NET Core ${{ matrix.dotnet-version }}
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      # # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-      # - name: Setup MSBuild.exe
-      #   uses: microsoft/setup-msbuild@v1.0.2
+      - name: Install dependencies
+        run: dotnet restore
 
-      # Restore the application to populate the obj folder with RuntimeIdentifiers
-      - name: Restore the application
-        run: dotnet restore $env:Solution_Name
+      - name: Test with .NET
+        run: dotnet test --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"
+
+      - name: Upload .NET test results
+        uses: actions/upload-artifact@v3
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
-
-      # Build the application
-      - name: Build the application
-        run: dotnet build --configuration Release
-        with:
-          dotnet-version: ${{ matrix.dotnet-version }}
-
-      # Test the application
-      - name: Test the application
-        run: dotnet test --configuration Release
-        with:
-          dotnet-version: ${{ matrix.dotnet-version }}
-
-      # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
-      # - name: Upload build artifacts
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: MSIX Package
-      #     path: ${{ env.Wap_Project_Directory }}\AppPackages
+          name: dotnet-results-${{ matrix.dotnet-version }}
+          path: TestResults-${{ matrix.dotnet-version }}
+        # Use always() to always run this step to publish test results when there are test failures
+        if: ${{ always() }}
