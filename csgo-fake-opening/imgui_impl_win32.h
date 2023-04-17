@@ -8,16 +8,16 @@
 //  [X] Platform: Gamepad support. Enabled with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
 
 #pragma once
-#include "../imgui/imgui.h"      // IMGUI_IMPL_API
+#include "../imgui/imgui.h" // IMGUI_IMPL_API
 
-IMGUI_IMPL_API bool     ImGui_ImplWin32_Init(void* hwnd);
-IMGUI_IMPL_API void     ImGui_ImplWin32_Shutdown();
-IMGUI_IMPL_API void     ImGui_ImplWin32_NewFrame();
+IMGUI_IMPL_API bool ImGui_ImplWin32_Init(void *hwnd);
+IMGUI_IMPL_API void ImGui_ImplWin32_Shutdown();
+IMGUI_IMPL_API void ImGui_ImplWin32_NewFrame();
 
 // Configuration
 // - Disable gamepad support or linking with xinput.lib
-//#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
-//#define IMGUI_IMPL_WIN32_DISABLE_LINKING_XINPUT
+// #define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+// #define IMGUI_IMPL_WIN32_DISABLE_LINKING_XINPUT
 
 // Win32 message handler your application need to call.
 // - Intentionally commented out in a '#if 0' block to avoid dragging dependencies on <windows.h> from this helper.
@@ -32,6 +32,6 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 // - In theory we could call simple functions from Windows SDK such as SetProcessDPIAware(), SetProcessDpiAwareness(), etc.
 //   but most of the functions provided by Microsoft require Windows 8.1/10+ SDK at compile time and Windows 8/10+ at runtime,
 //   neither we want to require the user to have. So we dynamically select and load those functions to avoid dependencies.
-IMGUI_IMPL_API void     ImGui_ImplWin32_EnableDpiAwareness();
-IMGUI_IMPL_API float    ImGui_ImplWin32_GetDpiScaleForHwnd(void* hwnd);       // HWND hwnd
-IMGUI_IMPL_API float    ImGui_ImplWin32_GetDpiScaleForMonitor(void* monitor); // HMONITOR monitor
+IMGUI_IMPL_API void ImGui_ImplWin32_EnableDpiAwareness();
+IMGUI_IMPL_API float ImGui_ImplWin32_GetDpiScaleForHwnd(void *hwnd);       // HWND hwnd
+IMGUI_IMPL_API float ImGui_ImplWin32_GetDpiScaleForMonitor(void *monitor); // HMONITOR monitor

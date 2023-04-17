@@ -1,27 +1,27 @@
 /* This file is part of csgo-fake-opening by B3akers, licensed under the MIT license:
-*
-* MIT License
-*
-* Copyright (c) b3akers 2020
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in all
-* copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-* SOFTWARE.
-*/
+ *
+ * MIT License
+ *
+ * Copyright (c) b3akers 2020
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 #include "d3d_hook.hpp"
 #include "sdk.hpp"
 #include "menu.hpp"
@@ -37,28 +37,31 @@
 #include <intrin.h>
 
 // Forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 std::once_flag init_device;
 std::unique_ptr<vmt_smart_hook> d3d_device_vmt = nullptr;
 
-bool get_system_font_path( const std::string& name, std::string& path ) {
-	char buffer[ MAX_PATH ];
+bool get_system_font_path(const std::string &name, std::string &path)
+{
+	char buffer[MAX_PATH];
 	HKEY registryKey;
 
-	GetWindowsDirectoryA( buffer, MAX_PATH );
-	std::string fontsFolder = buffer + std::string( "\\Fonts\\" );
+	GetWindowsDirectoryA(buffer, MAX_PATH);
+	std::string fontsFolder = buffer + std::string("\\Fonts\\");
 
-	if ( RegOpenKeyExA( HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", 0, KEY_READ, &registryKey ) ) {
+	if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", 0, KEY_READ, &registryKey))
+	{
 		return false;
 	}
 
 	uint32_t valueIndex = 0;
-	char valueName[ MAX_PATH ];
-	uint8_t valueData[ MAX_PATH ];
+	char valueName[MAX_PATH];
+	uint8_t valueData[MAX_PATH];
 	std::wstring wsFontFile;
 
-	do {
+	do
+	{
 		uint32_t valueNameSize = MAX_PATH;
 		uint32_t valueDataSize = MAX_PATH;
 		uint32_t valueType;
@@ -67,84 +70,103 @@ bool get_system_font_path( const std::string& name, std::string& path ) {
 			registryKey,
 			valueIndex,
 			valueName,
-			reinterpret_cast<DWORD*>( &valueNameSize ),
+			reinterpret_cast<DWORD *>(&valueNameSize),
 			0,
-			reinterpret_cast<DWORD*>( &valueType ),
+			reinterpret_cast<DWORD *>(&valueType),
 			valueData,
-			reinterpret_cast<DWORD*>( &valueDataSize ) );
+			reinterpret_cast<DWORD *>(&valueDataSize));
 
 		valueIndex++;
 
-		if ( error == ERROR_NO_MORE_ITEMS ) {
-			RegCloseKey( registryKey );
+		if (error == ERROR_NO_MORE_ITEMS)
+		{
+			RegCloseKey(registryKey);
 			return false;
 		}
 
-		if ( error || valueType != REG_SZ ) {
+		if (error || valueType != REG_SZ)
+		{
 			continue;
 		}
 
-		if ( _strnicmp( name.data( ), valueName, name.size( ) ) == 0 ) {
-			path = fontsFolder + std::string( (char*)valueData, valueDataSize );
-			RegCloseKey( registryKey );
+		if (_strnicmp(name.data(), valueName, name.size()) == 0)
+		{
+			path = fontsFolder + std::string((char *)valueData, valueDataSize);
+			RegCloseKey(registryKey);
 			return true;
 		}
-	} while ( true );
+	} while (true);
 
 	return false;
 }
 
-static const ImWchar ranges[ ] =
-{
-	0x0020, 0x00FF, // Basic Latin + Latin Supplement
-	0x0400, 0x044F, // Cyrillic
-	0x0100, 0x017F, // Latin Extended-A
-	0x0180, 0x024F, // Latin Extended-B
-	0x2000, 0x206F, // General Punctuation
-	0x3000, 0x30FF, // Punctuations, Hiragana, Katakana
-	0x31F0, 0x31FF, // Katakana Phonetic Extensions
-	0xFF00, 0xFFEF, // Half-width characters
-	0x4e00, 0x9FAF, // CJK Ideograms
-	0,
+static const ImWchar ranges[] =
+	{
+		0x0020,
+		0x00FF, // Basic Latin + Latin Supplement
+		0x0400,
+		0x044F, // Cyrillic
+		0x0100,
+		0x017F, // Latin Extended-A
+		0x0180,
+		0x024F, // Latin Extended-B
+		0x2000,
+		0x206F, // General Punctuation
+		0x3000,
+		0x30FF, // Punctuations, Hiragana, Katakana
+		0x31F0,
+		0x31FF, // Katakana Phonetic Extensions
+		0xFF00,
+		0xFFEF, // Half-width characters
+		0x4e00,
+		0x9FAF, // CJK Ideograms
+		0,
 };
 
 bool menu_is_open = false;
 
 LONG_PTR org_wnd_proc;
-LRESULT __stdcall wnd_proc( HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param ) {
-	if ( ImGui_ImplWin32_WndProcHandler( hwnd, msg, w_param, l_param ) )
+LRESULT __stdcall wnd_proc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
+{
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, w_param, l_param))
 		return true;
 
-	if ( msg == WM_KEYDOWN && w_param == VK_INSERT ) {
-		sdk::input_system->enable_input( menu_is_open );
+	if (msg == WM_KEYDOWN && w_param == VK_INSERT)
+	{
+		sdk::input_system->enable_input(menu_is_open);
 		menu_is_open = !menu_is_open;
 	}
 
-	return CallWindowProc( (WNDPROC)org_wnd_proc, hwnd, msg, w_param, l_param );
+	return CallWindowProc((WNDPROC)org_wnd_proc, hwnd, msg, w_param, l_param);
 }
 
-namespace d3d_vtable {
-	struct end_scene {
-		static long __stdcall hooked( IDirect3DDevice9* p_device ) {
+namespace d3d_vtable
+{
+	struct end_scene
+	{
+		static long __stdcall hooked(IDirect3DDevice9 *p_device)
+		{
 
 			// https://www.unknowncheats.me/forum/counterstrike-global-offensive/276438-stream-proof-visuals-method.html
 			//
 			static uintptr_t gameoverlay_return_address = 0;
-			if ( !gameoverlay_return_address ) {
+			if (!gameoverlay_return_address)
+			{
 				MEMORY_BASIC_INFORMATION info;
-				VirtualQuery( _ReturnAddress( ), &info, sizeof( MEMORY_BASIC_INFORMATION ) );
+				VirtualQuery(_ReturnAddress(), &info, sizeof(MEMORY_BASIC_INFORMATION));
 
-				char mod[ MAX_PATH ];
-				GetModuleFileNameA( (HMODULE)info.AllocationBase, mod, MAX_PATH );
+				char mod[MAX_PATH];
+				GetModuleFileNameA((HMODULE)info.AllocationBase, mod, MAX_PATH);
 
-				if ( strstr( mod,  "gameoverlay"  ) )
-					gameoverlay_return_address = (uintptr_t)( _ReturnAddress( ) );
+				if (strstr(mod, "gameoverlay"))
+					gameoverlay_return_address = (uintptr_t)(_ReturnAddress());
 			}
 
-			if ( gameoverlay_return_address != (uintptr_t)( _ReturnAddress( ) ) )
-				return m_original( p_device );
+			if (gameoverlay_return_address != (uintptr_t)(_ReturnAddress()))
+				return m_original(p_device);
 
-			std::call_once( init_device, [ & ] ( ) {
+			std::call_once(init_device, [&]()
+						   {
 
 				ImGui::CreateContext( );
 				ImGui::StyleColorsDark( );
@@ -158,53 +180,56 @@ namespace d3d_vtable {
 				ImGui_ImplWin32_Init( sdk::window );
 				ImGui_ImplDX9_Init( p_device );
 
-				org_wnd_proc = SetWindowLongPtr( sdk::window, GWLP_WNDPROC, (LONG_PTR)wnd_proc );
-				} );
+				org_wnd_proc = SetWindowLongPtr( sdk::window, GWLP_WNDPROC, (LONG_PTR)wnd_proc ); });
 
-			if ( menu_is_open ) {
-				ImGui_ImplDX9_NewFrame( );
-				ImGui_ImplWin32_NewFrame( );
-				ImGui::NewFrame( );
+			if (menu_is_open)
+			{
+				ImGui_ImplDX9_NewFrame();
+				ImGui_ImplWin32_NewFrame();
+				ImGui::NewFrame();
 
-				menu::draw( );
+				menu::draw();
 
-				ImGui::EndFrame( );
-				ImGui::Render( );
-				ImGui_ImplDX9_RenderDrawData( ImGui::GetDrawData( ) );
+				ImGui::EndFrame();
+				ImGui::Render();
+				ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 			}
 
-			return m_original( p_device );
+			return m_original(p_device);
 		}
-		static decltype( &hooked ) m_original;
+		static decltype(&hooked) m_original;
 	};
-	decltype( end_scene::m_original ) end_scene::m_original;
+	decltype(end_scene::m_original) end_scene::m_original;
 
-	struct reset {
-		static long __stdcall hooked( IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* parametrs ) {
+	struct reset
+	{
+		static long __stdcall hooked(IDirect3DDevice9 *device, D3DPRESENT_PARAMETERS *parametrs)
+		{
 
-			ImGui_ImplDX9_InvalidateDeviceObjects( );
+			ImGui_ImplDX9_InvalidateDeviceObjects();
 
-			auto hr = m_original( device, parametrs );
+			auto hr = m_original(device, parametrs);
 
-			if ( hr >= 0 )
-				ImGui_ImplDX9_CreateDeviceObjects( );
+			if (hr >= 0)
+				ImGui_ImplDX9_CreateDeviceObjects();
 
 			return hr;
-
 		}
-		static decltype( &hooked ) m_original;
+		static decltype(&hooked) m_original;
 	};
-	decltype( reset::m_original ) reset::m_original;
+	decltype(reset::m_original) reset::m_original;
 };
 using namespace d3d_vtable;
 
-void d3d_hook::hook( ) {
-	d3d_device_vmt = std::make_unique<::vmt_smart_hook>( sdk::g_d3d_device );
-	d3d_device_vmt->apply_hook<end_scene>( 42 );
-	d3d_device_vmt->apply_hook<reset>( 16 );
+void d3d_hook::hook()
+{
+	d3d_device_vmt = std::make_unique<::vmt_smart_hook>(sdk::g_d3d_device);
+	d3d_device_vmt->apply_hook<end_scene>(42);
+	d3d_device_vmt->apply_hook<reset>(16);
 }
 
-void d3d_hook::unhook( ) {
-	SetWindowLongPtr( sdk::window, GWLP_WNDPROC, org_wnd_proc );
-	d3d_device_vmt->unhook( );
+void d3d_hook::unhook()
+{
+	SetWindowLongPtr(sdk::window, GWLP_WNDPROC, org_wnd_proc);
+	d3d_device_vmt->unhook();
 }
