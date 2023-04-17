@@ -146,7 +146,7 @@ std::vector<weapon_drop_info> csgo_sdk::get_weapons_for_crate( const char* name 
 
 	static auto fn_get_loot_list_by_name
 		= reinterpret_cast<uintptr_t( __thiscall* )( uintptr_t, const char*, signed int )>(
-			utils::pattren_scan( "client.dll", "55 8B EC 83 E4 F8 8B 55 08 81 EC ? ? ? ? 56 57" )
+			utils::pattren_scan( "client.dll", "55 8B EC 83 E4 F8 8B 55 08 81 EC ? ? ? ? 53 8B" )
 			);
 
 	recursive_add_loot_to_loot_list( fn_get_loot_list_by_name( std::uintptr_t( get_item_schema( ) ) + 4, name, 0 ), drop );

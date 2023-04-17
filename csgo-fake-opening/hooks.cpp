@@ -35,6 +35,8 @@
 #include <intrin.h>
 #include <random>
 
+#include <iostream>
+
 c_econ_item_view* opened_crate = nullptr;
 
 namespace inventory_manager_vtable
@@ -62,6 +64,11 @@ namespace ui_engine_source_vtable
 	{
 		static bool __fastcall hooked( void* p_this, void*, uintptr_t event )
 		{
+			wchar_t msg[50];
+			swprintf_s(msg, 50, L">>>> broadcast_event: 0x%x", event);
+			//std::wcout << msg << std::endl;
+			OutputDebugString(msg);
+
 			static const auto failed_to_open_crate = *reinterpret_cast< uintptr_t* >( utils::pattren_scan( "client.dll", "68 ? ? ? ? 8B 01 8B 80 ? ? ? ? FF D0 84 C0 74 1A 8B 35 ? ? ? ? 8B D3 33 C9 8B 3E E8 ? ? ? ? 50 8B CE FF 97 ? ? ? ? 5F 5E B0 01 5B 8B E5 5D C2 04 00" ) + 1 );
 
 			if ( failed_to_open_crate == event && opened_crate )
@@ -280,6 +287,25 @@ namespace ui_engine_source_vtable
 		static decltype( &hooked ) m_original;
 	};
 	decltype( broadcast_event::m_original ) broadcast_event::m_original;
+
+	struct dispatch_event
+	{
+		static bool __fastcall hooked(void* p_this, void*, uintptr_t event)
+		{
+			wchar_t msg[50];
+			swprintf_s(msg, 50, L">>>> dispatch_event: 0x%x", event);
+			//std::wcout << msg << std::endl;
+
+			
+
+			OutputDebugString(msg);
+
+			return m_original(p_this, nullptr, event);
+		}
+
+		static decltype(&hooked) m_original;
+	};
+	decltype(dispatch_event::m_original) dispatch_event::m_original;
 }
 
 namespace panorama_marshall_helper_vtable
@@ -313,7 +339,10 @@ void hooks::hook( )
 	inventory_manager_vmt->apply_hook<inventory_manager_vtable::set_item_backpack_position>( 26 );
 
 	ui_engine_source_vmt = std::make_unique<vmt_smart_hook>( sdk::ui_engine_source );
+
+	ui_engine_source_vmt->apply_hook<ui_engine_source_vtable::dispatch_event>(52);
 	ui_engine_source_vmt->apply_hook<ui_engine_source_vtable::broadcast_event>( 54 );
+
 
 	panorama_marshall_helper_vmt = std::make_unique<vmt_smart_hook>( sdk::panorama_marshall_helper );
 	panorama_marshall_helper_vmt->apply_hook<panorama_marshall_helper_vtable::unknowncall>( 7 );

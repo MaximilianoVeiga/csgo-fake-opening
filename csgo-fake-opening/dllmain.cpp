@@ -23,6 +23,7 @@
 * SOFTWARE.
 */
 #include <Windows.h>
+#include <clocale>
 
 #include "csgo_fake_opening.hpp"
 

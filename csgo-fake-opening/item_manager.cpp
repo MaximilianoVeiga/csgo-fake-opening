@@ -29,7 +29,7 @@
 
 #include <Windows.h>
 
-#define DUMP_CREATES_KNIVES 0
+#define DUMP_CREATES_KNIVES 1
 
 #if DUMP_CREATES_KNIVES
 #include <fstream>
@@ -145,7 +145,16 @@ void item_manager::init( )
 			knives << item->get_definition_index( ) << "=" << std::wstring( item->get_weapon_localize_name( ) ) << std::endl;
 	}
 
-	knives.close( );
+	knives.close();
+
+	std::wofstream cratekeys("cratekeys.txt");
+	cratekeys.imbue(utf8_locale);
+
+	for (auto& key : keys)
+		cratekeys << key->get_definition_index() << "=" << std::wstring(key->get_weapon_localize_name()) << std::endl;
+
+	cratekeys.close();
+
 #endif
 }
 
