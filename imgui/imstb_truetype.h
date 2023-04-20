@@ -1839,7 +1839,7 @@ static int stbtt__GetGlyphShapeTT(const stbtt_fontinfo *info, int glyph_index, s
                num_vertices = stbtt__close_shape(vertices, num_vertices, was_off, start_off, sx, sy, scx, scy, cx, cy);
 
             // now start the new one
-            start_off = !(flags & 1);
+            start_off = ~(flags & 1);
             if (start_off)
             {
                // if we start off with an off-curve point, then when we need to find a point on the curve

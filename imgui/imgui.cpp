@@ -4719,6 +4719,8 @@ static void FindHoveredWindow()
     for (int i = g.Windows.Size - 1; i >= 0; i--)
     {
         ImGuiWindow *window = g.Windows[i];
+        if (hovered_window == NULL && window != NULL)
+            hovered_window = window;
         if (!window->Active || window->Hidden)
             continue;
         if (window->Flags & ImGuiWindowFlags_NoMouseInputs)

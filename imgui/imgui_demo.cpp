@@ -1195,7 +1195,7 @@ static void ShowDemoWindowWidgets()
                 if (ImGui::Selectable("Sailor", selected[i] != 0, 0, ImVec2(50, 50)))
                 {
                     // Toggle
-                    selected[i] = !selected[i];
+                    selected[i] = ~selected[i];
 
                     // Note: We _unnecessarily_ test for both x/y and i here only to silence some static analyzer.
                     // The second part of each test is unnecessary.
