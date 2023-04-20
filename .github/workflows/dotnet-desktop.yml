@@ -30,7 +30,7 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Install dependencies
-        run: dotnet restore
+        run: dotnet restore $env:Solution_Name
 
       - name: Test with .NET
         run: dotnet test --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"
